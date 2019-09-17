@@ -64,10 +64,22 @@ class _DrawState extends State<DrawContainer> {
     setState(() {
       if (_selectedMode == tabMode)
         _showBottomList = !_showBottomList;
-      else
+      else {
         _showBottomList = true;
-      _selectedMode = tabMode;
+      }
+      _selectedMode = _showBottomList ? tabMode : null;
     });
+  }
+
+  IconButton _buildBtn(IconData icon, SelectedMode mode) {
+    return IconButton(
+      icon: Icon(
+        icon,
+        color: (_selectedMode == mode) ? Colors.white : Colors.white,
+        size: (_selectedMode == mode) ? 26 : 24,
+      ),
+      onPressed: () => onTabSelect(mode),
+    );
   }
 
   @override
@@ -102,8 +114,8 @@ class _DrawState extends State<DrawContainer> {
         Container(
           margin: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25.0),
-            color: Colors.greenAccent,
+            borderRadius: BorderRadius.circular(15.0),
+            color: Colors.blue,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -112,20 +124,11 @@ class _DrawState extends State<DrawContainer> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  _buildBtn(Icons.album, SelectedMode.StrokeWidth),
+                  _buildBtn(Icons.opacity, SelectedMode.Opacity),
+                  _buildBtn(Icons.color_lens, SelectedMode.Color),
                   IconButton(
-                    icon: const Icon(Icons.album),
-                    onPressed: () => onTabSelect(SelectedMode.StrokeWidth),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.opacity),
-                    onPressed: () => onTabSelect(SelectedMode.Opacity),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.color_lens),
-                    onPressed: () => onTabSelect(SelectedMode.Color),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.undo),
+                    icon: const Icon(Icons.undo, color: Colors.white),
                     onPressed: widget.frame.points.isNotEmpty
                         ? () {
                             setState(() => _showBottomList = false);
@@ -144,26 +147,34 @@ class _DrawState extends State<DrawContainer> {
                           children: getColorList(),
                         ),
                       )
-                    : Slider(
-                        value: (_selectedMode == SelectedMode.StrokeWidth)
-                            ? _strokeWidth
-                            : _opacity,
-                        max: (_selectedMode == SelectedMode.StrokeWidth)
-                            ? 50.0
-                            : 1.0,
-                        min: 0.0,
-                        label: (_selectedMode == SelectedMode.StrokeWidth)
-                            ? "${_strokeWidth.round()}px"
-                            : "${(_opacity * 100).round()}%",
-                        divisions: 50,
-                        onChanged: (val) {
-                          setState(() {
-                            if (_selectedMode == SelectedMode.StrokeWidth)
-                              _strokeWidth = val;
-                            else
-                              _opacity = val;
-                          });
-                        },
+                    : SliderTheme(
+                        data: SliderThemeData(
+                          valueIndicatorTextStyle: const TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                        child: Slider(
+                          value: (_selectedMode == SelectedMode.StrokeWidth)
+                              ? _strokeWidth
+                              : _opacity,
+                          max: (_selectedMode == SelectedMode.StrokeWidth)
+                              ? 50.0
+                              : 1.0,
+                          min: 0.0,
+                          label: (_selectedMode == SelectedMode.StrokeWidth)
+                              ? "${_strokeWidth.round()}px"
+                              : "${(_opacity * 100).round()}%",
+                          divisions: 50,
+                          activeColor: Colors.white,
+                          onChanged: (val) {
+                            setState(() {
+                              if (_selectedMode == SelectedMode.StrokeWidth)
+                                _strokeWidth = val;
+                              else
+                                _opacity = val;
+                            });
+                          },
+                        ),
                       ),
                 visible: _showBottomList,
               ),

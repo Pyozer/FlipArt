@@ -39,8 +39,23 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
   void duplicateFrame(Frame frame) {
     final index = _frames.indexOf(frame);
     setState(() {
-      _frames.insert(index + 1, frame);
+      _frames.insert(index + 1, frame.copy());
       _frameIndex = index + 1;
+    });
+  }
+
+  void onUndo() {
+    if (_frames[_frameIndex].points.last == null)
+      _frames[_frameIndex].points.removeLast();
+
+    int lastIndexNull = _frames[_frameIndex].points.lastIndexOf(null);
+    if (lastIndexNull == -1) lastIndexNull = 0;
+    setState(() {
+      _frames[_frameIndex].points = _frames[_frameIndex]
+          .points
+          .getRange(0, lastIndexNull)
+          .toList()
+            ..add(null);
     });
   }
 
@@ -96,11 +111,9 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
               onNewPoint: (p) {
                 setState(() => _frames[_frameIndex].points.add(p));
               },
-              onUndo: () {
-                setState(() => _frames[_frameIndex].points.removeLast());
-              },
+              onUndo: onUndo,
             ),
-            _buildSectionTitle('Frames'),
+            _buildSectionTitle('${_frames.length} Frames'),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.fromLTRB(16.0, 12.0, 0.0, 12.0),
