@@ -18,7 +18,7 @@ You can draw something and animate it !
 - [X] User can see eight thumbnails that will contain individual animation frames
 - [X] User can see a button under each thumbnail - '+'
 - [X] User can click the '+' button to add a new image to an empty thumbnail
-- [X] User can see a file open dialog when the '+' button is clicked to allow an `.jpg` image to be loaded into the thumbnail. 
+- [X] User can draw using touch screen to create a frame (**EDIT**)
 - [X] User can see the '+' button label change to '-' after a thumbnail is loaded.
 - [X] User can click the '-' button to remove or replace a thumbnail.
 - [X] User can see an 'Transition Speed' slider control. 
@@ -26,9 +26,9 @@ You can draw something and animate it !
 
 ### Operation Buttons
 
-- [ ] User can see two buttons - 'Clear Configuration' and 'Start Animation'
+- [X] User can see two buttons - 'Clear Configuration' and 'Start Animation'
 - [X] User can see the 'Start Animation' button disabled until at least one thumbnail has been added via the Configuration Panel.
-- [ ] User can click the 'Clear Configuration' button to clear all thumbnails from the configuration panel.
+- [X] User can click the 'Clear Configuration' button to clear all thumbnails from the configuration panel.
 - [X] User can click the 'Start Animation' button to begin the Animation Display panel
 - [X] User can see the 'Start Animation' button label change to 'Stop Animation' once an animation has been started.
 - [X] User can click the 'Stop Animation' button to halt the animation in the animation display
@@ -36,17 +36,22 @@ You can draw something and animate it !
 
 ### Animation Display Panel
 
-- [X] User can see thumbnails added in the Configuration panel displayed when theh 'Start Animation' button is clicked. 
+- [X] User can see thumbnails added in the Configuration panel displayed when theh 'Start Animation' button is clicked.
 - [X] User can see thumbnails transtion from one to the next at the rate defined by the 'Transition Speed' slider.
 
 ## Bonus features
 
-- [ ] User can see the border around the thumbnail in the Configuration Panel highlighted when that thumbnail is displayed in the Animation Display panel.
+- [X] User can see the border around the thumbnail in the Configuration Panel highlighted when that thumbnail is displayed in the Animation Display panel.
 - [X] User can dynamically add any number of thumbnails rather than being restricted to just eight.
 - [ ] User can hear unique sounds associated with modifying thumbnails in the Configuration Panel.
 - [ ] User can see a transition type dropdown in the Configuration Panel to define the transition effect between thumbnails in the Animation Display - ease, ease-in, ease-out, ease-in-out
 - [ ] User can drag and drop thumbnails to reorder them
 - [ ] User can save the animation as a `.gif` file.
+- [X] User can duplicate a frame (**EDIT**)
+- [X] User can undo last line drawed of a frame (**EDIT**)
+- [X] User can draw using different colors (**EDIT**)
+- [X] User can draw using different line weight (**EDIT**)
+- [X] User can draw using different line opacity (**EDIT**)
 
 ## Run the project
 
