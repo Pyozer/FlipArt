@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:flipart/screens/draw_screen.dart';
+import 'package:flipart/models/frame.dart';
 import 'package:flipart/widgets/draw_container.dart';
+import 'package:flipart/widgets/draw_painter.dart';
 import 'package:flipart/widgets/flipart_title.dart';
 import 'package:flipart/widgets/rounded_card.dart';
 import 'package:flipart/widgets/rounded_image.dart';
@@ -16,31 +17,34 @@ class CreateAnimationScreen extends StatefulWidget {
 }
 
 class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
-  List<File> _images = <File>[];
-  int _currentRenderIndex;
+  List<Frame> _frames = <Frame>[];
+
+  int _currentRenderIndex = 0;
   bool _isPlay = false;
   int _fps = 12;
 
   Future<void> addNewImage() async {
-    final image = await Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => DrawScreen(),
-      fullscreenDialog: true,
-    ));
-  }
-
-  void removeImage(File image) {
     setState(() {
-      _images.remove(image);
-      _currentRenderIndex = _images.isNotEmpty ? 0 : null;
+      _frames.add(Frame());
+      _currentRenderIndex = _frames.length - 1;
     });
   }
 
-  void selectFrame(File image) {
-    setState(() => _currentRenderIndex = _images.indexOf(image));
+  void removeFrame(Frame frame) {
+    setState(() {
+      _frames.remove(frame);
+      if (_frames.isEmpty)
+        _frames.add(Frame());
+      _currentRenderIndex = 0;
+    });
+  }
+
+  void selectFrame(Frame frame) {
+    setState(() => _currentRenderIndex = _frames.indexOf(frame));
   }
 
   void _playRender() async {
-    if (_images.isEmpty) return;
+    if (_frames.isEmpty) return;
 
     _isPlay = true;
     _currentRenderIndex = 0;
@@ -48,7 +52,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
     await Future.doWhile(() async {
       if (!_isPlay || !mounted) return false;
 
-      setState(() => _currentRenderIndex %= _images.length);
+      setState(() => _currentRenderIndex %= _frames.length);
       await Future.delayed(Duration(milliseconds: 1000 ~/ _fps)); // 12FPS
       _currentRenderIndex++;
       return true;
@@ -85,7 +89,14 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                 margin: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 16.0),
                 child: Container(
                   height: size.width,
-                  child: DrawContainer(),
+                  child: _frames.length > 0 && _currentRenderIndex != null
+                      ? DrawContainer(
+                          onChange: (frame) {
+                            setState(
+                                () => _frames[_currentRenderIndex] = frame);
+                          },
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -96,23 +107,23 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 scrollDirection: Axis.horizontal,
                 children: [
-                  ..._images.map(
-                    (image) => Center(
+                  ..._frames.map(
+                    (frame) => Center(
                       child: SizedBox.fromSize(
                         size: Size.square(50),
                         child: RoundedCard(
                           margin: const EdgeInsets.only(right: 8.0),
-                          onLongPress: () => removeImage(image),
-                          onPress: () => selectFrame(image),
+                          onLongPress: () => removeFrame(frame),
+                          onPress: () => selectFrame(frame),
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
                               RoundedWidget(
-                                child: Image.file(
-                                  image,
-                                  height: 50.0,
-                                  width: 50.0,
-                                  fit: BoxFit.cover,
+                                child: CustomPaint(
+                                  size: Size.infinite,
+                                  painter: DrawingPainter(
+                                    frame: frame,
+                                  ),
                                 ),
                               ),
                               ShadowIcon(
@@ -129,7 +140,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                     child: RoundedCard(
                       margin: EdgeInsets.zero,
                       child: SizedBox.fromSize(
-                        size: Size.square(100.0),
+                        size: const Size.square(100.0),
                         child: IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: addNewImage,
@@ -149,11 +160,11 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                     _isPlay
                         ? IconButton(
                             icon: const Icon(Icons.pause),
-                            onPressed: _images.isNotEmpty ? _stopRender : null,
+                            onPressed: _frames.isNotEmpty ? _stopRender : null,
                           )
                         : IconButton(
                             icon: const Icon(Icons.play_arrow),
-                            onPressed: _images.isNotEmpty ? _playRender : null,
+                            onPressed: _frames.isNotEmpty ? _playRender : null,
                           ),
                     Expanded(
                       child: Slider(

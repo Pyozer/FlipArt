@@ -1,17 +1,18 @@
 import 'dart:ui';
 
+import 'package:flipart/models/drawing_point.dart';
+import 'package:flipart/models/frame.dart';
+import 'package:flipart/widgets/draw_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-
-class DrawingPoints {
-  Paint paint;
-  Offset points;
-  DrawingPoints({this.points, this.paint});
-}
 
 enum SelectedMode { StrokeWidth, Opacity, Color }
 
 class DrawContainer extends StatefulWidget {
+  final ValueChanged<Frame> onChange;
+
+  const DrawContainer({Key key, @required this.onChange}) : super(key: key);
+
   @override
   _DrawState createState() => _DrawState();
 }
@@ -21,7 +22,7 @@ class _DrawState extends State<DrawContainer> {
   double _opacity = 1.0;
   double _strokeWidth = 3.0;
 
-  List<DrawingPoints> _points = List();
+  Frame frame = Frame([]);
 
   Color _pickerColor = Colors.black;
   bool _showBottomList = false;
@@ -38,8 +39,8 @@ class _DrawState extends State<DrawContainer> {
   void onDraw(Offset globalPosition) {
     setState(() {
       RenderBox renderBox = context.findRenderObject();
-      _points.add(DrawingPoints(
-        points: renderBox.globalToLocal(globalPosition),
+      frame.points.add(DrawingPoint(
+        point: renderBox.globalToLocal(globalPosition),
         paint: Paint()
           ..strokeCap = StrokeCap.round
           ..color = _selectedColor.withOpacity(_opacity)
@@ -47,6 +48,7 @@ class _DrawState extends State<DrawContainer> {
           ..strokeWidth = _strokeWidth,
       ));
     });
+    widget.onChange(frame);
   }
 
   void onTabSelect(SelectedMode tabMode) {
@@ -63,10 +65,10 @@ class _DrawState extends State<DrawContainer> {
         ClipRect(
           child: GestureDetector(
             onPanUpdate: (details) => onDraw(details.globalPosition),
-            onPanEnd: (_) => setState(() => _points.add(null)),
+            onPanEnd: (_) => setState(() => frame.points.add(null)),
             child: CustomPaint(
               size: Size.infinite,
-              painter: DrawingPainter(pointsList: _points),
+              painter: DrawingPainter(frame: frame),
             ),
           ),
         ),
@@ -103,7 +105,7 @@ class _DrawState extends State<DrawContainer> {
                       onPressed: () {
                         setState(() {
                           _showBottomList = false;
-                          _points.clear();
+                          frame.points.clear();
                         });
                       },
                     ),
@@ -212,26 +214,4 @@ class _DrawState extends State<DrawContainer> {
       ),
     );
   }
-}
-
-class DrawingPainter extends CustomPainter {
-  final List<DrawingPoints> pointsList;
-
-  const DrawingPainter({this.pointsList});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    for (int i = 0; i < pointsList.length - 1; i++) {
-      if (pointsList[i] != null && pointsList[i + 1] != null) {
-        canvas.drawLine(
-          pointsList[i].points,
-          pointsList[i + 1].points,
-          pointsList[i].paint,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(DrawingPainter oldDelegate) => true;
 }
