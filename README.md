@@ -60,3 +60,7 @@ To run the app **you must have Flutter installed**. If it's not the case, go to 
 After this, run `flutter packages get` to download packages.
 
 Now, you can run the app with `flutter run`.
+
+## Demo
+
+![Demo GIF](https://raw.githubusercontent.com/Pyozer/FlipArt/master/demo.gif)
