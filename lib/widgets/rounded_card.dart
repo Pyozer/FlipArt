@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class RoundedCard extends StatelessWidget {
   final double elevation;
+  final Color borderColor;
   final Widget child;
   final EdgeInsets margin;
   final VoidCallback onPress;
@@ -10,6 +11,7 @@ class RoundedCard extends StatelessWidget {
   const RoundedCard({
     Key key,
     this.elevation = 3.0,
+    this.borderColor,
     this.margin = const EdgeInsets.all(16.0),
     @required this.child,
     this.onPress,
@@ -23,6 +25,7 @@ class RoundedCard extends StatelessWidget {
       margin: margin,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
+        side: borderColor != null ? BorderSide(color: borderColor) : BorderSide.none,
       ),
       child: child,
     );

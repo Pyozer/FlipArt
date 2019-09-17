@@ -77,12 +77,13 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       _frameIndex++;
       return true;
     });
-    if (mounted) setState(() => _frameIndex = 0);
   }
 
   void _stopRender() => setState(() => _isPlay = false);
 
   void _saveAnimation() {}
+
+  bool isCurrentFrame(Frame frame) => frame == _frames[_frameIndex];
 
   Widget _buildSectionTitle(String title) {
     return Padding(
@@ -106,8 +107,9 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
               width: size.width,
               height: size.width * 0.8,
               frame: _frames[_frameIndex],
-              previousFrame:
-                  _frameIndex > 0 && !_isPlay ? _frames[_frameIndex - 1] : null,
+              previousFrame: (_frameIndex > 0 && !_isPlay)
+                  ? _frames[_frameIndex - 1]
+                  : null,
               onNewPoint: (p) {
                 setState(() => _frames[_frameIndex].points.add(p));
               },
@@ -122,6 +124,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                   ..._frames.map(
                     (frame) => RoundedCard(
                       margin: const EdgeInsets.only(right: 12.0),
+                      borderColor: isCurrentFrame(frame) ? Colors.blue : null,
                       onLongPress: () => duplicateFrame(frame),
                       onPress: () => selectFrame(frame),
                       child: Stack(
