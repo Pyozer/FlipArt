@@ -12,11 +12,13 @@ class DrawingPainter extends CustomPainter {
     for (int i = 0; i < frame.points.length - 1; i++) {
       if (frame.points[i] != null && frame.points[i + 1] != null) {
         Paint pointPaint = frame.points[i].paint;
-        if (isTransparent)
-          pointPaint = Paint()..color = pointPaint.color.withOpacity(0.3)
-          ..strokeWidth = pointPaint.strokeWidth
-          ..isAntiAlias = true;
-
+        if (isTransparent) {
+          pointPaint = Paint()
+            ..color = pointPaint.color.withOpacity(0.3)
+            ..strokeWidth = pointPaint.strokeWidth
+            ..isAntiAlias = true;
+        }
+        
         canvas.drawLine(
           frame.points[i].point,
           frame.points[i + 1].point,

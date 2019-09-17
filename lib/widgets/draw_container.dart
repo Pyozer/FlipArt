@@ -58,6 +58,7 @@ class _DrawState extends State<DrawContainer> {
   void onTabSelect(SelectedMode tabMode) {
     setState(() {
       if (_selectedMode == tabMode) _showBottomList = !_showBottomList;
+      else _showBottomList = true;
       _selectedMode = tabMode;
     });
   }

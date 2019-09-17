@@ -56,7 +56,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       _frameIndex++;
       return true;
     });
-    if (mounted) setState(() => _frameIndex = null);
+    if (mounted) setState(() => _frameIndex = 0);
   }
 
   void _stopRender() => setState(() => _isPlay = false);
@@ -81,77 +81,71 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
           children: [
             FlipArtTitle(subtitle: "Create animation"),
             _buildSectionTitle('Render at $_fps FPS'),
-            SizedBox.fromSize(
-              size: Size(size.width, size.width * 0.8),
+            SizedBox(
+              width: size.width,
+              height: size.width * 0.8,
               child: RoundedCard(
-                elevation: 5.0,
+                elevation: 4.0,
                 margin: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 16.0),
-                child: Container(
-                  height: size.width,
-                  child: _frames.length > 0 && _frameIndex != null
-                      ? DrawContainer(
-                          frame: _frames[_frameIndex],
-                          previousFrame:
-                              _frameIndex > 0 && !_isPlay ? _frames[_frameIndex - 1] : null,
-                          onNewPoint: (p) {
-                            setState(() => _frames[_frameIndex].points.add(p));
-                          },
-                          onClear: () {
-                            setState(() => _frames[_frameIndex].points.clear());
-                          },
-                        )
+                child: DrawContainer(
+                  frame: _frames[_frameIndex],
+                  previousFrame: _frameIndex > 0 && !_isPlay
+                      ? _frames[_frameIndex - 1]
                       : null,
+                  onNewPoint: (p) {
+                    setState(() => _frames[_frameIndex].points.add(p));
+                  },
+                  onClear: () {
+                    setState(() => _frames[_frameIndex].points.clear());
+                  },
                 ),
               ),
             ),
             _buildSectionTitle('Images'),
-            Container(
-              height: 130.0,
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                scrollDirection: Axis.horizontal,
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16.0, 12.0, 0.0, 12.0),
+              child: Row(
                 children: [
                   ..._frames.map(
-                    (frame) => Center(
-                      child: SizedBox.fromSize(
-                        size: Size.square(50),
-                        child: RoundedCard(
-                          margin: const EdgeInsets.only(right: 8.0),
-                          onLongPress: () => removeFrame(frame),
-                          onPress: () => selectFrame(frame),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              RoundedWidget(
-                                child: CustomPaint(
-                                  size: Size.infinite,
-                                  painter: DrawingPainter(
-                                    frame: frame,
-                                  ),
+                    (frame) => RoundedCard(
+                      margin: EdgeInsets.zero,
+                      onLongPress: () => removeFrame(frame),
+                      onPress: () => selectFrame(frame),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          RoundedWidget(
+                            child: Transform.scale(
+                              scale: 0.24,
+                              alignment: Alignment.topLeft,
+                              child: CustomPaint(
+                                size: Size(100.0, 80.0),
+                                painter: DrawingPainter(
+                                  frame: frame,
                                 ),
                               ),
-                              ShadowIcon(
-                                icon: Icons.delete_outline,
-                                iconColor: Colors.white,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
+                          ShadowIcon(
+                            icon: Icons.delete_outline,
+                            iconColor: Colors.white,
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   Center(
                     child: RoundedCard(
-                      margin: EdgeInsets.zero,
                       child: SizedBox.fromSize(
-                        size: const Size.square(100.0),
+                        size: const Size(100.0, 80.0),
                         child: IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: addNewImage,
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
