@@ -1,11 +1,12 @@
 import 'dart:io';
 
+import 'package:flipart/screens/draw_screen.dart';
+import 'package:flipart/widgets/draw_container.dart';
 import 'package:flipart/widgets/flipart_title.dart';
 import 'package:flipart/widgets/rounded_card.dart';
 import 'package:flipart/widgets/rounded_image.dart';
 import 'package:flipart/widgets/shadow_icon.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
 class CreateAnimationScreen extends StatefulWidget {
   CreateAnimationScreen({Key key}) : super(key: key);
@@ -21,12 +22,10 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
   int _fps = 12;
 
   Future<void> addNewImage() async {
-    final image = await ImagePicker.pickImage(
-      source: ImageSource.camera,
-      maxHeight: 1500,
-      maxWidth: 1500,
-    );
-    if (image != null && mounted) setState(() => _images.add(image));
+    final image = await Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => DrawScreen(),
+      fullscreenDialog: true,
+    ));
   }
 
   void removeImage(File image) {
@@ -61,6 +60,13 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
 
   void _saveAnimation() {}
 
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, top: 12.0),
+      child: Text(title, style: Theme.of(context).textTheme.body1),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -69,19 +75,31 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
+          children: [
             FlipArtTitle(subtitle: "Create animation"),
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 12.0),
-              child: Text('Images', style: Theme.of(context).textTheme.body1),
+            _buildSectionTitle('Render at $_fps FPS'),
+            SizedBox.fromSize(
+              size: Size(size.width, size.width * 0.8),
+              child: RoundedCard(
+                elevation: 5.0,
+                margin: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 16.0),
+                child: Container(
+                  height: size.width,
+                  child: DrawContainer(),
+                ),
+              ),
             ),
+            _buildSectionTitle('Images'),
             Container(
               height: 130.0,
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 scrollDirection: Axis.horizontal,
                 children: [
-                  ..._images.map((image) => Center(
+                  ..._images.map(
+                    (image) => Center(
+                      child: SizedBox.fromSize(
+                        size: Size.square(50),
                         child: RoundedCard(
                           margin: const EdgeInsets.only(right: 8.0),
                           onLongPress: () => removeImage(image),
@@ -92,8 +110,8 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                               RoundedWidget(
                                 child: Image.file(
                                   image,
-                                  height: 100.0,
-                                  width: 100.0,
+                                  height: 50.0,
+                                  width: 50.0,
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -104,7 +122,9 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                             ],
                           ),
                         ),
-                      )),
+                      ),
+                    ),
+                  ),
                   Center(
                     child: RoundedCard(
                       margin: EdgeInsets.zero,
@@ -120,27 +140,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 12.0),
-              child: Text('Render at $_fps FPS', style: Theme.of(context).textTheme.body1),
-            ),
-            SizedBox.fromSize(
-              size: Size(size.width, size.width * 0.8),
-              child: RoundedCard(
-                elevation: 5.0,
-                margin: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 16.0),
-                child: Container(
-                  height: size.width,
-                  child: _currentRenderIndex != null
-                      ? Image.file(_images[_currentRenderIndex])
-                      : null,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 12.0),
-              child: Text('Controls', style: Theme.of(context).textTheme.body1),
-            ),
+            _buildSectionTitle('Controls'),
             RoundedCard(
               child: Padding(
                 padding: const EdgeInsets.all(0.0),
