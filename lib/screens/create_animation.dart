@@ -50,7 +50,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       if (!_isPlay || !mounted) return false;
 
       setState(() => _currentRenderIndex %= _images.length);
-      await Future.delayed(const Duration(milliseconds: 1000)); // 12FPS
+      await Future.delayed(Duration(milliseconds: 1000 ~/ _fps)); // 12FPS
       _currentRenderIndex++;
       return true;
     });
@@ -122,7 +122,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16.0, top: 12.0),
-              child: Text('Render', style: Theme.of(context).textTheme.body1),
+              child: Text('Render at $_fps FPS', style: Theme.of(context).textTheme.body1),
             ),
             SizedBox.fromSize(
               size: Size(size.width, size.width * 0.8),
@@ -143,40 +143,26 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
             ),
             RoundedCard(
               child: Padding(
-                padding: const EdgeInsets.only(left: 8.0, bottom: 16.0),
+                padding: const EdgeInsets.all(0.0),
                 child: Row(
                   children: [
-                    Column(
-                      children: [
-                        _isPlay
-                            ? IconButton(
-                                icon: Icon(Icons.pause),
-                                onPressed:
-                                    _images.isNotEmpty ? _stopRender : null,
-                                tooltip: "Pause render",
-                              )
-                            : IconButton(
-                                icon: Icon(Icons.play_arrow),
-                                onPressed:
-                                    _images.isNotEmpty ? _playRender : null,
-                                tooltip: "Play render",
-                              ),
-                        Text(_isPlay ? "Pause" : "Play"),
-                      ],
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Slider(
-                            value: _fps.toDouble(),
-                            min: 1.0,
-                            max: 60.0,
-                            divisions: 60,
-                            onChanged: (v) => setState(() => _fps = v.round()),
-                            label: "$_fps",
+                    _isPlay
+                        ? IconButton(
+                            icon: const Icon(Icons.pause),
+                            onPressed: _images.isNotEmpty ? _stopRender : null,
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.play_arrow),
+                            onPressed: _images.isNotEmpty ? _playRender : null,
                           ),
-                          Text("$_fps FPS"),
-                        ],
+                    Expanded(
+                      child: Slider(
+                        value: _fps.toDouble(),
+                        min: 1.0,
+                        max: 60.0,
+                        divisions: 60,
+                        onChanged: (v) => setState(() => _fps = v.round()),
+                        label: "$_fps FPS",
                       ),
                     ),
                   ],
