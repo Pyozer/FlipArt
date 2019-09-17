@@ -21,7 +21,6 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^0.1.2
-  image_picker: ^0.6.1+4
   flutter_colorpicker: any
 
 dev_dependencies:

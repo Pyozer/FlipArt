@@ -41,9 +41,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Use to pick an image from gallery in order to make an animation</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Use to take a picture in order to make an animation</string>
 </dict>
 </plist>
