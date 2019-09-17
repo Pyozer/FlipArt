@@ -14,11 +14,12 @@ class DrawingPainter extends CustomPainter {
         Paint pointPaint = frame.points[i].paint;
         if (isTransparent) {
           pointPaint = Paint()
+            ..strokeCap = StrokeCap.round
             ..color = pointPaint.color.withOpacity(0.2)
             ..strokeWidth = pointPaint.strokeWidth
             ..isAntiAlias = true;
         }
-        
+
         canvas.drawLine(
           frame.points[i].point,
           frame.points[i + 1].point,

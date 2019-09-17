@@ -9,6 +9,7 @@ class DrawingPoint {
   DrawingPoint copy() => DrawingPoint(
         point: Offset(point.dx, point.dy),
         paint: Paint()
+          ..strokeCap = StrokeCap.round
           ..color = paint.color
           ..strokeWidth = paint.strokeWidth
           ..isAntiAlias = true,

@@ -1,10 +1,10 @@
+import 'package:flipart/models/drawing_point.dart';
 import 'package:flipart/models/frame.dart';
 import 'package:flipart/widgets/draw_container.dart';
 import 'package:flipart/widgets/draw_painter.dart';
 import 'package:flipart/widgets/flipart_title.dart';
 import 'package:flipart/widgets/rounded_card.dart';
 import 'package:flipart/widgets/rounded_image.dart';
-import 'package:flipart/widgets/shadow_icon.dart';
 import 'package:flutter/material.dart';
 
 class CreateAnimationScreen extends StatefulWidget {
@@ -21,14 +21,14 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
   bool _isPlay = false;
   int _fps = 12;
 
-  Future<void> addNewImage() async {
+  void _addNewImage() async {
     setState(() {
       _frames.add(Frame());
       _frameIndex = _frames.length - 1;
     });
   }
 
-  void removeFrame(Frame frame) {
+  void _removeFrame(Frame frame) {
     setState(() {
       _frames.remove(frame);
       if (_frames.isEmpty) _frames.add(Frame());
@@ -36,7 +36,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
     });
   }
 
-  void duplicateFrame(Frame frame) {
+  void _duplicateFrame(Frame frame) {
     final index = _frames.indexOf(frame);
     setState(() {
       _frames.insert(index + 1, frame.copy());
@@ -44,7 +44,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
     });
   }
 
-  void onUndo() {
+  void _onUndo() {
     if (_frames[_frameIndex].points.last == null)
       _frames[_frameIndex].points.removeLast();
 
@@ -59,7 +59,11 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
     });
   }
 
-  void selectFrame(Frame frame) {
+  void _onNewPoint(DrawingPoint point) {
+    setState(() => _frames[_frameIndex].points.add(point));
+  }
+
+  void _selectFrame(Frame frame) {
     setState(() => _frameIndex = _frames.indexOf(frame));
   }
 
@@ -67,7 +71,6 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
     if (_frames.isEmpty) return;
 
     _isPlay = true;
-    _frameIndex = 0;
 
     await Future.doWhile(() async {
       if (!_isPlay || !mounted) return false;
@@ -81,7 +84,16 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
 
   void _stopRender() => setState(() => _isPlay = false);
 
-  void _saveAnimation() {}
+  void _onReset() {
+    setState(() {
+      _frames = [Frame()];
+      _frameIndex = 0;
+    });
+  }
+
+  void _saveAnimation() {
+    // TODO: Save animation to GIF
+  }
 
   bool isCurrentFrame(Frame frame) => frame == _frames[_frameIndex];
 
@@ -110,10 +122,8 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
               previousFrame: (_frameIndex > 0 && !_isPlay)
                   ? _frames[_frameIndex - 1]
                   : null,
-              onNewPoint: (p) {
-                setState(() => _frames[_frameIndex].points.add(p));
-              },
-              onUndo: onUndo,
+              onNewPoint: _onNewPoint,
+              onUndo: _onUndo,
             ),
             _buildSectionTitle('${_frames.length} Frames'),
             SingleChildScrollView(
@@ -125,8 +135,8 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                     (frame) => RoundedCard(
                       margin: const EdgeInsets.only(right: 12.0),
                       borderColor: isCurrentFrame(frame) ? Colors.blue : null,
-                      onLongPress: () => duplicateFrame(frame),
-                      onPress: () => selectFrame(frame),
+                      onLongPress: () => _duplicateFrame(frame),
+                      onPress: () => _selectFrame(frame),
                       child: Stack(
                         alignment: Alignment.topRight,
                         children: [
@@ -142,7 +152,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
-                            onPressed: () => removeFrame(frame),
+                            onPressed: () => _removeFrame(frame),
                           ),
                         ],
                       ),
@@ -154,28 +164,19 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                       size: const Size(100.0, 80.0),
                       child: IconButton(
                         icon: const Icon(Icons.add),
-                        onPressed: addNewImage,
+                        onPressed: _addNewImage,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            _buildSectionTitle('Controls'),
+            _buildSectionTitle('Transition speed'),
             RoundedCard(
               child: Padding(
                 padding: const EdgeInsets.all(0.0),
                 child: Row(
                   children: [
-                    _isPlay
-                        ? IconButton(
-                            icon: const Icon(Icons.pause),
-                            onPressed: _frames.isNotEmpty ? _stopRender : null,
-                          )
-                        : IconButton(
-                            icon: const Icon(Icons.play_arrow),
-                            onPressed: _frames.isNotEmpty ? _playRender : null,
-                          ),
                     Expanded(
                       child: Slider(
                         value: _fps.toDouble(),
@@ -186,6 +187,11 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                         label: "$_fps FPS",
                       ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.restore),
+                      onPressed: _onReset,
+                      tooltip: "Reset animation",
+                    ),
                   ],
                 ),
               ),
@@ -193,11 +199,15 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _saveAnimation,
-        tooltip: 'Save animation',
-        child: const Icon(Icons.save),
-      ),
+      floatingActionButton: _frames.isEmpty
+          ? null
+          : FloatingActionButton(
+              onPressed: _isPlay ? _stopRender : _playRender,
+              tooltip: '${_isPlay ? "Pause" : "Play"} animation',
+              child: _isPlay
+                  ? const Icon(Icons.pause)
+                  : const Icon(Icons.play_arrow),
+            ),
     );
   }
 }
