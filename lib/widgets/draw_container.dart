@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flipart/models/drawing_point.dart';
 import 'package:flipart/models/frame.dart';
 import 'package:flipart/widgets/draw_painter.dart';
+import 'package:flipart/widgets/rounded_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
@@ -11,15 +12,19 @@ enum SelectedMode { StrokeWidth, Opacity, Color }
 class DrawContainer extends StatefulWidget {
   final Frame frame;
   final Frame previousFrame;
+  final double height;
+  final double width;
   final ValueChanged<DrawingPoint> onNewPoint;
-  final VoidCallback onClear;
+  final VoidCallback onUndo;
 
   const DrawContainer({
     Key key,
     @required this.frame,
     this.previousFrame,
+    @required this.height,
+    @required this.width,
     @required this.onNewPoint,
-    @required this.onClear,
+    @required this.onUndo,
   }) : super(key: key);
 
   @override
@@ -57,100 +62,112 @@ class _DrawState extends State<DrawContainer> {
 
   void onTabSelect(SelectedMode tabMode) {
     setState(() {
-      if (_selectedMode == tabMode) _showBottomList = !_showBottomList;
-      else _showBottomList = true;
+      if (_selectedMode == tabMode)
+        _showBottomList = !_showBottomList;
+      else
+        _showBottomList = true;
       _selectedMode = tabMode;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        ClipRect(
-          child: GestureDetector(
-            onPanUpdate: (details) => onDraw(details.globalPosition),
-            onPanEnd: (_) => widget.onNewPoint(null),
-            child: CustomPaint(
-              size: Size.infinite,
-              foregroundPainter: widget.previousFrame != null
-                  ? DrawingPainter(frame: widget.previousFrame, isTransparent: true)
-                  : null,
-              painter: DrawingPainter(frame: widget.frame),
+        SizedBox(
+          width: widget.width,
+          height: widget.height,
+          child: RoundedCard(
+            elevation: 4.0,
+            margin: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 16.0),
+            child: ClipRect(
+              child: GestureDetector(
+                onPanUpdate: (details) => onDraw(details.globalPosition),
+                onPanEnd: (_) => widget.onNewPoint(null),
+                child: CustomPaint(
+                  size: Size(widget.width, widget.height),
+                  foregroundPainter: widget.previousFrame != null
+                      ? DrawingPainter(
+                          frame: widget.previousFrame,
+                          isTransparent: true,
+                        )
+                      : null,
+                  painter: DrawingPainter(frame: widget.frame),
+                ),
+              ),
             ),
           ),
         ),
-        Positioned(
-          left: 16.0,
-          bottom: 16.0,
-          right: 16.0,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25.0),
-              color: Colors.greenAccent,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.album),
-                      onPressed: () => onTabSelect(SelectedMode.StrokeWidth),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.opacity),
-                      onPressed: () => onTabSelect(SelectedMode.Opacity),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.color_lens),
-                      onPressed: () => onTabSelect(SelectedMode.Color),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        setState(() => _showBottomList = false);
-                        widget.onClear();
-                      },
-                    ),
-                  ],
-                ),
-                Visibility(
-                  child: (_selectedMode == SelectedMode.Color)
-                      ? Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: getColorList(),
-                          ),
-                        )
-                      : Slider(
-                          value: (_selectedMode == SelectedMode.StrokeWidth)
-                              ? _strokeWidth
-                              : _opacity,
-                          max: (_selectedMode == SelectedMode.StrokeWidth)
-                              ? 50.0
-                              : 1.0,
-                          min: 0.0,
-                          label: (_selectedMode == SelectedMode.StrokeWidth)
-                              ? "${_strokeWidth.round()}px"
-                              : "${(_opacity * 100).round()}%",
-                          divisions: 50,
-                          onChanged: (val) {
-                            setState(() {
-                              if (_selectedMode == SelectedMode.StrokeWidth)
-                                _strokeWidth = val;
-                              else
-                                _opacity = val;
-                            });
-                          },
+        Container(
+          margin: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25.0),
+            color: Colors.greenAccent,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.album),
+                    onPressed: () => onTabSelect(SelectedMode.StrokeWidth),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.opacity),
+                    onPressed: () => onTabSelect(SelectedMode.Opacity),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.color_lens),
+                    onPressed: () => onTabSelect(SelectedMode.Color),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.undo),
+                    onPressed: widget.frame.points.isNotEmpty
+                        ? () {
+                            setState(() => _showBottomList = false);
+                            widget.onUndo();
+                          }
+                        : null,
+                  ),
+                ],
+              ),
+              Visibility(
+                child: (_selectedMode == SelectedMode.Color)
+                    ? Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: getColorList(),
                         ),
-                  visible: _showBottomList,
-                ),
-              ],
-            ),
+                      )
+                    : Slider(
+                        value: (_selectedMode == SelectedMode.StrokeWidth)
+                            ? _strokeWidth
+                            : _opacity,
+                        max: (_selectedMode == SelectedMode.StrokeWidth)
+                            ? 50.0
+                            : 1.0,
+                        min: 0.0,
+                        label: (_selectedMode == SelectedMode.StrokeWidth)
+                            ? "${_strokeWidth.round()}px"
+                            : "${(_opacity * 100).round()}%",
+                        divisions: 50,
+                        onChanged: (val) {
+                          setState(() {
+                            if (_selectedMode == SelectedMode.StrokeWidth)
+                              _strokeWidth = val;
+                            else
+                              _opacity = val;
+                          });
+                        },
+                      ),
+                visible: _showBottomList,
+              ),
+            ],
           ),
         ),
       ],

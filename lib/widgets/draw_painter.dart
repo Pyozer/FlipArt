@@ -14,7 +14,7 @@ class DrawingPainter extends CustomPainter {
         Paint pointPaint = frame.points[i].paint;
         if (isTransparent) {
           pointPaint = Paint()
-            ..color = pointPaint.color.withOpacity(0.3)
+            ..color = pointPaint.color.withOpacity(0.2)
             ..strokeWidth = pointPaint.strokeWidth
             ..isAntiAlias = true;
         }

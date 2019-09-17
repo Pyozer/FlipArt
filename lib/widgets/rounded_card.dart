@@ -18,19 +18,22 @@ class RoundedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final card = Card(
       elevation: elevation,
       margin: margin,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
-      child: (onPress ?? onLongPress) != null
-          ? GestureDetector(
-              onTap: onPress,
-              onLongPress: onLongPress,
-              child: child,
-            )
-          : child,
+      child: child,
     );
+
+    return (onPress ?? onLongPress) != null
+        ? GestureDetector(
+            onTap: onPress,
+            onLongPress: onLongPress,
+            behavior: HitTestBehavior.translucent,
+            child: card,
+          )
+        : card;
   }
 }

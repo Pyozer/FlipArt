@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flipart/models/frame.dart';
 import 'package:flipart/widgets/draw_container.dart';
 import 'package:flipart/widgets/draw_painter.dart';
@@ -35,6 +33,14 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       _frames.remove(frame);
       if (_frames.isEmpty) _frames.add(Frame());
       _frameIndex = 0;
+    });
+  }
+
+  void duplicateFrame(Frame frame) {
+    final index = _frames.indexOf(frame);
+    setState(() {
+      _frames.insert(index + 1, frame);
+      _frameIndex = index + 1;
     });
   }
 
@@ -81,27 +87,20 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
           children: [
             FlipArtTitle(subtitle: "Create animation"),
             _buildSectionTitle('Render at $_fps FPS'),
-            SizedBox(
+            DrawContainer(
               width: size.width,
               height: size.width * 0.8,
-              child: RoundedCard(
-                elevation: 4.0,
-                margin: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 16.0),
-                child: DrawContainer(
-                  frame: _frames[_frameIndex],
-                  previousFrame: _frameIndex > 0 && !_isPlay
-                      ? _frames[_frameIndex - 1]
-                      : null,
-                  onNewPoint: (p) {
-                    setState(() => _frames[_frameIndex].points.add(p));
-                  },
-                  onClear: () {
-                    setState(() => _frames[_frameIndex].points.clear());
-                  },
-                ),
-              ),
+              frame: _frames[_frameIndex],
+              previousFrame:
+                  _frameIndex > 0 && !_isPlay ? _frames[_frameIndex - 1] : null,
+              onNewPoint: (p) {
+                setState(() => _frames[_frameIndex].points.add(p));
+              },
+              onUndo: () {
+                setState(() => _frames[_frameIndex].points.removeLast());
+              },
             ),
-            _buildSectionTitle('Images'),
+            _buildSectionTitle('Frames'),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.fromLTRB(16.0, 12.0, 0.0, 12.0),
@@ -109,40 +108,37 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                 children: [
                   ..._frames.map(
                     (frame) => RoundedCard(
-                      margin: EdgeInsets.zero,
-                      onLongPress: () => removeFrame(frame),
+                      margin: const EdgeInsets.only(right: 12.0),
+                      onLongPress: () => duplicateFrame(frame),
                       onPress: () => selectFrame(frame),
                       child: Stack(
-                        alignment: Alignment.center,
+                        alignment: Alignment.topRight,
                         children: [
                           RoundedWidget(
                             child: Transform.scale(
                               scale: 0.24,
                               alignment: Alignment.topLeft,
                               child: CustomPaint(
-                                size: Size(100.0, 80.0),
-                                painter: DrawingPainter(
-                                  frame: frame,
-                                ),
+                                size: const Size(100.0, 80.0),
+                                painter: DrawingPainter(frame: frame),
                               ),
                             ),
                           ),
-                          ShadowIcon(
-                            icon: Icons.delete_outline,
-                            iconColor: Colors.white,
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () => removeFrame(frame),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  Center(
-                    child: RoundedCard(
-                      child: SizedBox.fromSize(
-                        size: const Size(100.0, 80.0),
-                        child: IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: addNewImage,
-                        ),
+                  RoundedCard(
+                    margin: const EdgeInsets.only(right: 12.0),
+                    child: SizedBox.fromSize(
+                      size: const Size(100.0, 80.0),
+                      child: IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: addNewImage,
                       ),
                     ),
                   ),
