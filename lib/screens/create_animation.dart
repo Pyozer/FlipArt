@@ -1,5 +1,12 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
+import 'package:flame/animation.dart' as animation;
+import 'package:flame/flame.dart';
+import 'package:flame/position.dart';
+import 'package:flame/sprite.dart';
 import 'package:flipart/widgets/flipart_title.dart';
 import 'package:flipart/widgets/rounded_card.dart';
 import 'package:flipart/widgets/rounded_image.dart';
@@ -16,6 +23,7 @@ class CreateAnimationScreen extends StatefulWidget {
 
 class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
   List<File> _images = <File>[];
+  List<ui.Image> _imagesTest = <ui.Image>[];
   int _currentRenderIndex;
   bool _isPlay = false;
   int _fps = 12;
@@ -27,6 +35,12 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       maxWidth: 1500,
     );
     if (image != null && mounted) setState(() => _images.add(image));
+
+    _imagesTest = [];
+    for (int i = 0; i < _images.length; i++) {
+      final Uint8List bytes = await File(_images[i].path).readAsBytes();
+      _imagesTest.add(await decodeImageFromList(bytes));
+    }
   }
 
   void removeImage(File image) {
@@ -109,7 +123,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                     child: RoundedCard(
                       margin: EdgeInsets.zero,
                       child: SizedBox.fromSize(
-                        size: Size.square(100.0),
+                        size: const Size.square(100.0),
                         child: IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: addNewImage,
@@ -122,19 +136,25 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 16.0, top: 12.0),
-              child: Text('Render at $_fps FPS', style: Theme.of(context).textTheme.body1),
+              child: Text(
+                'Render at $_fps FPS',
+                style: Theme.of(context).textTheme.body1,
+              ),
             ),
             SizedBox.fromSize(
               size: Size(size.width, size.width * 0.8),
               child: RoundedCard(
                 elevation: 5.0,
                 margin: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 16.0),
-                child: Container(
-                  height: size.width,
-                  child: _currentRenderIndex != null
-                      ? Image.file(_images[_currentRenderIndex])
-                      : null,
-                ),
+                child: _imagesTest.isNotEmpty
+                    ? Flame.util.animationAsWidget(
+                        Position(256, 256),
+                        animation.Animation.spriteList(
+                          _imagesTest.map((i) => Sprite.fromImage(i)).toList(),
+                          stepTime: 1 / _fps,
+                        ),
+                      )
+                    : Container(),
               ),
             ),
             Padding(
