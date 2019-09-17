@@ -85,14 +85,14 @@ class _DrawState extends State<DrawContainer> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
+        Container(
           width: widget.width,
           height: widget.height,
+          margin: const EdgeInsets.only(top: 10.0),
           child: RoundedCard(
             elevation: 4.0,
-            margin: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 16.0),
+            margin: EdgeInsets.zero,
             child: ClipRect(
               child: GestureDetector(
                 onPanUpdate: (details) => onDraw(details.globalPosition),
@@ -111,14 +111,11 @@ class _DrawState extends State<DrawContainer> {
             ),
           ),
         ),
-        Container(
-          margin: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.0),
-            color: Colors.blue,
-          ),
+        RoundedCard(
+          margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 16.0),
+          borderRadius: 15.0,
+          backgroundColor: Colors.blue,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
@@ -138,46 +135,41 @@ class _DrawState extends State<DrawContainer> {
                   ),
                 ],
               ),
-              Visibility(
-                child: (_selectedMode == SelectedMode.Color)
-                    ? Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: getColorList(),
-                        ),
-                      )
-                    : SliderTheme(
-                        data: SliderThemeData(
-                          valueIndicatorTextStyle: const TextStyle(
-                            color: Colors.black,
-                          ),
-                        ),
-                        child: Slider(
-                          value: (_selectedMode == SelectedMode.StrokeWidth)
-                              ? _strokeWidth
-                              : _opacity,
-                          max: (_selectedMode == SelectedMode.StrokeWidth)
-                              ? 50.0
-                              : 1.0,
-                          min: 0.0,
-                          label: (_selectedMode == SelectedMode.StrokeWidth)
-                              ? "${_strokeWidth.round()}px"
-                              : "${(_opacity * 100).round()}%",
-                          divisions: 50,
-                          activeColor: Colors.white,
-                          onChanged: (val) {
-                            setState(() {
-                              if (_selectedMode == SelectedMode.StrokeWidth)
-                                _strokeWidth = val;
-                              else
-                                _opacity = val;
-                            });
-                          },
-                        ),
-                      ),
-                visible: _showBottomList,
-              ),
+              if (_showBottomList && _selectedMode == SelectedMode.Color)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: getColorList(),
+                  ),
+                ),
+              if (_showBottomList && _selectedMode != SelectedMode.Color)
+                SliderTheme(
+                  data: SliderThemeData(
+                    valueIndicatorTextStyle: const TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                  child: Slider(
+                    value: _selectedMode == SelectedMode.StrokeWidth
+                        ? _strokeWidth
+                        : _opacity,
+                    max: _selectedMode == SelectedMode.StrokeWidth ? 50.0 : 1.0,
+                    min: 0.0,
+                    label: _selectedMode == SelectedMode.StrokeWidth
+                        ? "${_strokeWidth.round()}px"
+                        : "${(_opacity * 100).round()}%",
+                    divisions: 50,
+                    activeColor: Colors.white,
+                    inactiveColor: Colors.white38,
+                    onChanged: (val) {
+                      if (_selectedMode == SelectedMode.StrokeWidth)
+                        setState(() => _strokeWidth = val);
+                      else
+                        setState(() => _opacity = val);
+                    },
+                  ),
+                ),
             ],
           ),
         ),

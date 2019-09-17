@@ -7,5 +7,7 @@ class Frame {
     points ??= [];
   }
 
+  bool get isNotEmpty => points?.isNotEmpty ?? false;
+
   Frame copy() => Frame(points.map((pts) => pts?.copy()).toList());
 }

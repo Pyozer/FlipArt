@@ -5,6 +5,8 @@ class RoundedCard extends StatelessWidget {
   final Color borderColor;
   final Widget child;
   final EdgeInsets margin;
+  final Color backgroundColor;
+  final double borderRadius;
   final VoidCallback onPress;
   final VoidCallback onLongPress;
 
@@ -12,7 +14,9 @@ class RoundedCard extends StatelessWidget {
     Key key,
     this.elevation = 3.0,
     this.borderColor,
+    this.borderRadius = 8.0,
     this.margin = const EdgeInsets.all(16.0),
+    this.backgroundColor,
     @required this.child,
     this.onPress,
     this.onLongPress,
@@ -23,9 +27,12 @@ class RoundedCard extends StatelessWidget {
     final card = Card(
       elevation: elevation,
       margin: margin,
+      color: backgroundColor,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        side: borderColor != null ? BorderSide(color: borderColor) : BorderSide.none,
+        borderRadius: BorderRadius.circular(borderRadius),
+        side: borderColor != null
+            ? BorderSide(color: borderColor)
+            : BorderSide.none,
       ),
       child: child,
     );
@@ -34,7 +41,6 @@ class RoundedCard extends StatelessWidget {
         ? GestureDetector(
             onTap: onPress,
             onLongPress: onLongPress,
-            behavior: HitTestBehavior.translucent,
             child: card,
           )
         : card;

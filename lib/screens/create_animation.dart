@@ -7,6 +7,10 @@ import 'package:flipart/widgets/rounded_card.dart';
 import 'package:flipart/widgets/rounded_image.dart';
 import 'package:flutter/material.dart';
 
+const kDrawRatio = 0.65;
+const kFrameCardWidth = 90.0;
+const kDefaultFps = 6;
+
 class CreateAnimationScreen extends StatefulWidget {
   CreateAnimationScreen({Key key}) : super(key: key);
 
@@ -15,11 +19,23 @@ class CreateAnimationScreen extends StatefulWidget {
 }
 
 class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
-  List<Frame> _frames = <Frame>[Frame()];
+  List<Frame> _frames;
+  bool _isPlay;
+  int _frameIndex;
+  int _fps;
 
-  int _frameIndex = 0;
-  bool _isPlay = false;
-  int _fps = 12;
+  @override
+  void initState() {
+    super.initState();
+    _initValues();
+  }
+
+  void _initValues() {
+    _frames = [Frame()];
+    _isPlay = false;
+    _frameIndex = 0;
+    _fps = kDefaultFps;
+  }
 
   void _addNewImage() async {
     setState(() {
@@ -33,6 +49,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       _frames.remove(frame);
       if (_frames.isEmpty) _frames.add(Frame());
       _frameIndex = 0;
+      _isPlay = _frames.length > 1;
     });
   }
 
@@ -50,6 +67,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
 
     int lastIndexNull = _frames[_frameIndex].points.lastIndexOf(null);
     if (lastIndexNull == -1) lastIndexNull = 0;
+
     setState(() {
       _frames[_frameIndex].points = _frames[_frameIndex]
           .points
@@ -76,7 +94,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
       if (!_isPlay || !mounted) return false;
 
       setState(() => _frameIndex %= _frames.length);
-      await Future.delayed(Duration(milliseconds: 1000 ~/ _fps)); // 12FPS
+      await Future.delayed(Duration(milliseconds: 1000 ~/ _fps));
       _frameIndex++;
       return true;
     });
@@ -84,23 +102,96 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
 
   void _stopRender() => setState(() => _isPlay = false);
 
-  void _onReset() {
-    setState(() {
-      _frames = [Frame()];
-      _frameIndex = 0;
-    });
+  void _onReset() => setState(_initValues);
+
+  Frame getFrame(int index) {
+    if (_frames.length > index) return _frames[index];
+    return Frame();
   }
 
-  void _saveAnimation() {
-    // TODO: Save animation to GIF
-  }
+  bool isCurrentFrame(Frame frame) => frame == getFrame(_frameIndex);
 
-  bool isCurrentFrame(Frame frame) => frame == _frames[_frameIndex];
-
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, double marginTop) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, top: 12.0),
+      padding: EdgeInsets.only(left: 16.0, top: marginTop),
       child: Text(title, style: Theme.of(context).textTheme.body1),
+    );
+  }
+
+  Widget _buildFrame(Frame frame, Size cardSize, double screenWidth) {
+    return RoundedCard(
+      margin: const EdgeInsets.only(right: 12.0),
+      borderColor: isCurrentFrame(frame) ? Colors.blue : null,
+      onLongPress: () => _duplicateFrame(frame),
+      onPress: () => _selectFrame(frame),
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          RoundedWidget(
+            child: Transform.scale(
+              scale: kFrameCardWidth / screenWidth,
+              alignment: Alignment.topLeft,
+              child: CustomPaint(
+                size: cardSize,
+                painter: DrawingPainter(frame: frame),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () => _removeFrame(frame),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFrames(double screenWidth) {
+    const cardSize = Size(kFrameCardWidth, kFrameCardWidth * kDrawRatio);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16.0, 10.0, 0.0, 12.0),
+      child: Row(
+        children: [
+          ..._frames.map((frame) => _buildFrame(frame, cardSize, screenWidth)),
+          RoundedCard(
+            margin: const EdgeInsets.only(right: 12.0),
+            child: SizedBox.fromSize(
+              size: cardSize,
+              child: IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: _addNewImage,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransitionSpeed() {
+    return RoundedCard(
+      margin: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 16.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Slider(
+              value: _fps.toDouble(),
+              min: 1.0,
+              max: 60.0,
+              divisions: 60,
+              onChanged: (v) => setState(() => _fps = v.round()),
+              label: "$_fps FPS",
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.restore),
+            onPressed: _onReset,
+            tooltip: "Reset animation",
+          ),
+        ],
+      ),
     );
   }
 
@@ -113,101 +204,37 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FlipArtTitle(subtitle: "Create animation"),
-            _buildSectionTitle('Render at $_fps FPS'),
+            const FlipArtTitle(subtitle: "Create animation"),
+            _buildSectionTitle('Render at $_fps FPS', 6),
             DrawContainer(
               width: size.width,
-              height: size.width * 0.8,
-              frame: _frames[_frameIndex],
-              previousFrame: (_frameIndex > 0 && !_isPlay)
+              height: size.width * kDrawRatio,
+              frame: getFrame(_frameIndex),
+              previousFrame: _frames.length > 1 && _frameIndex > 0 && !_isPlay
                   ? _frames[_frameIndex - 1]
                   : null,
               onNewPoint: _onNewPoint,
               onUndo: _onUndo,
             ),
-            _buildSectionTitle('${_frames.length} Frames'),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16.0, 12.0, 0.0, 12.0),
-              child: Row(
+            Expanded(
+              child: Column(
                 children: [
-                  ..._frames.map(
-                    (frame) => RoundedCard(
-                      margin: const EdgeInsets.only(right: 12.0),
-                      borderColor: isCurrentFrame(frame) ? Colors.blue : null,
-                      onLongPress: () => _duplicateFrame(frame),
-                      onPress: () => _selectFrame(frame),
-                      child: Stack(
-                        alignment: Alignment.topRight,
-                        children: [
-                          RoundedWidget(
-                            child: Transform.scale(
-                              scale: 0.24,
-                              alignment: Alignment.topLeft,
-                              child: CustomPaint(
-                                size: const Size(100.0, 80.0),
-                                painter: DrawingPainter(frame: frame),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () => _removeFrame(frame),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  RoundedCard(
-                    margin: const EdgeInsets.only(right: 12.0),
-                    child: SizedBox.fromSize(
-                      size: const Size(100.0, 80.0),
-                      child: IconButton(
-                        icon: const Icon(Icons.add),
-                        onPressed: _addNewImage,
-                      ),
-                    ),
-                  ),
+                  _buildSectionTitle('${_frames.length} Frames', 0.0),
+                  _buildFrames(size.width),
+                  _buildSectionTitle('Transition speed', 10),
+                  _buildTransitionSpeed(),
                 ],
-              ),
-            ),
-            _buildSectionTitle('Transition speed'),
-            RoundedCard(
-              child: Padding(
-                padding: const EdgeInsets.all(0.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Slider(
-                        value: _fps.toDouble(),
-                        min: 1.0,
-                        max: 60.0,
-                        divisions: 60,
-                        onChanged: (v) => setState(() => _fps = v.round()),
-                        label: "$_fps FPS",
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.restore),
-                      onPressed: _onReset,
-                      tooltip: "Reset animation",
-                    ),
-                  ],
-                ),
               ),
             ),
           ],
         ),
       ),
-      floatingActionButton: _frames.isEmpty
-          ? null
-          : FloatingActionButton(
-              onPressed: _isPlay ? _stopRender : _playRender,
-              tooltip: '${_isPlay ? "Pause" : "Play"} animation',
-              child: _isPlay
-                  ? const Icon(Icons.pause)
-                  : const Icon(Icons.play_arrow),
-            ),
+      floatingActionButton: FloatingActionButton(
+        disabledElevation: 0.0,
+        onPressed: _frames.length > 1 ? (_isPlay ? _stopRender : _playRender) : null,
+        tooltip: '${_isPlay ? "Pause" : "Play"} animation',
+        child: _isPlay ? const Icon(Icons.pause) : const Icon(Icons.play_arrow),
+      ),
     );
   }
 }
