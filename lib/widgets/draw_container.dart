@@ -9,9 +9,18 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 enum SelectedMode { StrokeWidth, Opacity, Color }
 
 class DrawContainer extends StatefulWidget {
-  final ValueChanged<Frame> onChange;
+  final Frame frame;
+  final Frame previousFrame;
+  final ValueChanged<DrawingPoint> onNewPoint;
+  final VoidCallback onClear;
 
-  const DrawContainer({Key key, @required this.onChange}) : super(key: key);
+  const DrawContainer({
+    Key key,
+    @required this.frame,
+    this.previousFrame,
+    @required this.onNewPoint,
+    @required this.onClear,
+  }) : super(key: key);
 
   @override
   _DrawState createState() => _DrawState();
@@ -21,8 +30,6 @@ class _DrawState extends State<DrawContainer> {
   Color _selectedColor = Colors.black;
   double _opacity = 1.0;
   double _strokeWidth = 3.0;
-
-  Frame frame = Frame([]);
 
   Color _pickerColor = Colors.black;
   bool _showBottomList = false;
@@ -37,18 +44,15 @@ class _DrawState extends State<DrawContainer> {
   ];
 
   void onDraw(Offset globalPosition) {
-    setState(() {
-      RenderBox renderBox = context.findRenderObject();
-      frame.points.add(DrawingPoint(
-        point: renderBox.globalToLocal(globalPosition),
-        paint: Paint()
-          ..strokeCap = StrokeCap.round
-          ..color = _selectedColor.withOpacity(_opacity)
-          ..isAntiAlias = true
-          ..strokeWidth = _strokeWidth,
-      ));
-    });
-    widget.onChange(frame);
+    RenderBox renderBox = context.findRenderObject();
+    widget.onNewPoint(DrawingPoint(
+      point: renderBox.globalToLocal(globalPosition),
+      paint: Paint()
+        ..strokeCap = StrokeCap.round
+        ..color = _selectedColor.withOpacity(_opacity)
+        ..isAntiAlias = true
+        ..strokeWidth = _strokeWidth,
+    ));
   }
 
   void onTabSelect(SelectedMode tabMode) {
@@ -65,17 +69,20 @@ class _DrawState extends State<DrawContainer> {
         ClipRect(
           child: GestureDetector(
             onPanUpdate: (details) => onDraw(details.globalPosition),
-            onPanEnd: (_) => setState(() => frame.points.add(null)),
+            onPanEnd: (_) => widget.onNewPoint(null),
             child: CustomPaint(
               size: Size.infinite,
-              painter: DrawingPainter(frame: frame),
+              foregroundPainter: widget.previousFrame != null
+                  ? DrawingPainter(frame: widget.previousFrame, isTransparent: true)
+                  : null,
+              painter: DrawingPainter(frame: widget.frame),
             ),
           ),
         ),
         Positioned(
-          left: 16,
-          bottom: 16,
-          right: 16,
+          left: 16.0,
+          bottom: 16.0,
+          right: 16.0,
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(25.0),
@@ -103,10 +110,8 @@ class _DrawState extends State<DrawContainer> {
                     IconButton(
                       icon: const Icon(Icons.clear),
                       onPressed: () {
-                        setState(() {
-                          _showBottomList = false;
-                          frame.points.clear();
-                        });
+                        setState(() => _showBottomList = false);
+                        widget.onClear();
                       },
                     ),
                   ],

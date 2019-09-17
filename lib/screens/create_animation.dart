@@ -17,47 +17,46 @@ class CreateAnimationScreen extends StatefulWidget {
 }
 
 class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
-  List<Frame> _frames = <Frame>[];
+  List<Frame> _frames = <Frame>[Frame()];
 
-  int _currentRenderIndex = 0;
+  int _frameIndex = 0;
   bool _isPlay = false;
   int _fps = 12;
 
   Future<void> addNewImage() async {
     setState(() {
       _frames.add(Frame());
-      _currentRenderIndex = _frames.length - 1;
+      _frameIndex = _frames.length - 1;
     });
   }
 
   void removeFrame(Frame frame) {
     setState(() {
       _frames.remove(frame);
-      if (_frames.isEmpty)
-        _frames.add(Frame());
-      _currentRenderIndex = 0;
+      if (_frames.isEmpty) _frames.add(Frame());
+      _frameIndex = 0;
     });
   }
 
   void selectFrame(Frame frame) {
-    setState(() => _currentRenderIndex = _frames.indexOf(frame));
+    setState(() => _frameIndex = _frames.indexOf(frame));
   }
 
   void _playRender() async {
     if (_frames.isEmpty) return;
 
     _isPlay = true;
-    _currentRenderIndex = 0;
+    _frameIndex = 0;
 
     await Future.doWhile(() async {
       if (!_isPlay || !mounted) return false;
 
-      setState(() => _currentRenderIndex %= _frames.length);
+      setState(() => _frameIndex %= _frames.length);
       await Future.delayed(Duration(milliseconds: 1000 ~/ _fps)); // 12FPS
-      _currentRenderIndex++;
+      _frameIndex++;
       return true;
     });
-    if (mounted) setState(() => _currentRenderIndex = null);
+    if (mounted) setState(() => _frameIndex = null);
   }
 
   void _stopRender() => setState(() => _isPlay = false);
@@ -89,11 +88,16 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
                 margin: const EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 16.0),
                 child: Container(
                   height: size.width,
-                  child: _frames.length > 0 && _currentRenderIndex != null
+                  child: _frames.length > 0 && _frameIndex != null
                       ? DrawContainer(
-                          onChange: (frame) {
-                            setState(
-                                () => _frames[_currentRenderIndex] = frame);
+                          frame: _frames[_frameIndex],
+                          previousFrame:
+                              _frameIndex > 0 && !_isPlay ? _frames[_frameIndex - 1] : null,
+                          onNewPoint: (p) {
+                            setState(() => _frames[_frameIndex].points.add(p));
+                          },
+                          onClear: () {
+                            setState(() => _frames[_frameIndex].points.clear());
                           },
                         )
                       : null,
