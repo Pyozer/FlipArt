@@ -217,7 +217,8 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
               onUndo: _onUndo,
             ),
             Expanded(
-              child: Column(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 42.0),
                 children: [
                   _buildSectionTitle('${_frames.length} Frames', 0.0),
                   _buildFrames(size.width),

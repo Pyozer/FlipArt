@@ -1,7 +1,10 @@
 # Flip Art
 
-FlipArt is a Flutter app to create animations, like a Flip Book.
-You can draw something and animate it !
+FlipArt is an app to create animations, like a Flip Book.
+
+You can draw some frame and animate it ! You can also change FPS animation.
+
+App made with Flutter ❤️
 
 ## Requirements & Constraints
 
@@ -58,6 +61,8 @@ You can draw something and animate it !
 To run the app **you must have Flutter installed**. If it's not the case, go to <https://flutter.dev>.
 
 After this, run `flutter packages get` to download packages.
+
+If you want to build for iOS, **go to /ios** folder and execute `pod update`.
 
 Now, you can run the app with `flutter run`.
 
