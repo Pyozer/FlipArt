@@ -114,7 +114,7 @@ class _CreateAnimationScreenState extends State<CreateAnimationScreen> {
   Widget _buildSectionTitle(String title, double marginTop) {
     return Padding(
       padding: EdgeInsets.only(left: 16.0, top: marginTop),
-      child: Text(title, style: Theme.of(context).textTheme.body1),
+      child: Text(title, style: Theme.of(context).textTheme.bodyText2),
     );
   }
 

@@ -194,7 +194,7 @@ class _DrawState extends State<DrawContainer> {
                   displayThumbColor: true,
                   pickerColor: _pickerColor,
                   onColorChanged: (color) => _pickerColor = color,
-                  enableLabel: false,
+                  showLabel: false,
                 ),
               ),
               actions: [

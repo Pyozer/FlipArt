@@ -24,7 +24,7 @@ App made with Flutter ❤️
 - [X] User can draw using touch screen to create a frame (**EDIT**)
 - [X] User can see the '+' button label change to '-' after a thumbnail is loaded.
 - [X] User can click the '-' button to remove or replace a thumbnail.
-- [X] User can see an 'Transition Speed' slider control. 
+- [X] User can see an 'Transition Speed' slider control.
 - [X] User can adjust the 'Transition Speed' slider from slow to fast to adjust the transition time between thumbnails in the Animation Display.
 
 ### Operation Buttons
